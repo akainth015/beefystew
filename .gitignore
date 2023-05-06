@@ -1,0 +1,3 @@
+databases/*
+!databases/README.md
+settings_private.py
