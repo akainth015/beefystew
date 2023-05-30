@@ -24,6 +24,7 @@ The path follows the bottlepy syntax.
 session, db, T, auth, and templates are examples of Fixtures.
 Warning: Fixtures MUST be declared with @action.uses({fixtures}) else your app will result in undefined behavior
 """
+import json
 
 from py4web import action, request, abort, redirect, URL
 from yatl.helpers import A
@@ -31,7 +32,7 @@ from .common import db, session, T, cache, auth, logger, authenticated, unauthen
 
 
 @action("index")
-@action.uses("index.html", auth, T)
+@action.uses("index.html", auth)
 def index():
     user = auth.get_user()
     message = T("Hello {first_name}".format(**user) if user else "Hello")
@@ -46,13 +47,12 @@ def index():
 @action.uses("s.html", auth, T)
 def stream(stream_id=None):
     assert stream_id is not None
-    stream = db.stream[stream_id]
-    posts = db(db.post_stream_mapping.stream_id  == stream_id).select(
-    db.post.ALL, db.auth_user.ALL,
-  join=[db.post.on(db.post.id == db.post_stream_mapping.post_id),
-        db.auth_user.on(db.post.created_by == db.auth_user.id)]
+    posts = db(db.post_stream_mapping.stream_id == stream_id).select(
+        db.post.ALL, db.auth_user.ALL,
+        join=[
+            db.post.on(db.post.id == db.post_stream_mapping.post_id),
+            db.auth_user.on(db.post.created_by == db.auth_user.id)
+        ]
     ).as_list()
-    # posts should be an inner join of post and post_stream_mapping
 
-    print(posts)
-    return dict(stream=stream, posts=posts)
+    return dict(stream=db.stream[stream_id], posts=json.dumps(posts))
