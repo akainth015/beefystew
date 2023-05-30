@@ -32,11 +32,11 @@ VERIFY_EMAIL = False
 REQUIRES_APPROVAL = False
 
 # auto login after registration
-# requires False VERIFY_EMAIL & REQUIRES_APPROVAL 
-LOGIN_AFTER_REGISTRATION = True
+# requires False VERIFY_EMAIL & REQUIRES_APPROVAL
+LOGIN_AFTER_REGISTRATION = False
 
 # ALLOWED_ACTIONS in API / default Forms:
-# ["all"] 
+# ["all"]
 # ["login", "logout", "request_reset_password", "reset_password", \
 #  "change_password", "change_email", "profile", "config", "register",
 #  "verify_email", "unsubscribe"]
@@ -89,8 +89,9 @@ USE_PAM = False
 USE_LDAP = False
 LDAP_SETTINGS = {
     "mode": "ad",  # Microsoft Active Directory
-    "server": "mydc.domain.com", # FQDN or IP of one Domain Controller
-    "base_dn": "cn=Users,dc=domain,dc=com", # base dn, i.e. where the users are located
+    "server": "mydc.domain.com",  # FQDN or IP of one Domain Controller
+    # base dn, i.e. where the users are located
+    "base_dn": "cn=Users,dc=domain,dc=com",
 }
 
 # i18n settings

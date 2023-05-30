@@ -1,7 +1,11 @@
 [[extend 'layout.html']]
 
 <div class="section">
-  <div class="vars">
-      [[=message]]
+  <div class="vars">[[=message]]</div>
+  <!-- for each stream show the stream name -->
+  [[for s in streams:]]
+  <div>
+    <a href="[[=URL('stream', s.id)]]">[[=s.name]]</a>
   </div>
+  [[pass]]
 </div>

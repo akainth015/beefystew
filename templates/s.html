@@ -1,0 +1,10 @@
+[[extend 'layout.html']]
+
+<div class="section">
+  <div class="vars">[[=stream.name]]</div>
+  [[for p in posts:]]
+  <div>
+    <p>[[=p]]</p>
+  </div>
+  [[pass]]
+</div>
