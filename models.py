@@ -96,7 +96,7 @@ def add_posts_for_testing(num_posts=15):
 
         caption = random.choice(f"test caption {k}")
         created_b = random.choice(
-            db(db.auth_user.username.startswith("_")).select()).id
+            db(db.auth_user.username.startswith("_")).select().as_list())['id']
         post = dict(
             caption=caption,
             created_by=created_b,

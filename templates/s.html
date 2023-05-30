@@ -3,8 +3,31 @@
 <div class="section">
   <div class="vars">[[=stream.name]]</div>
   [[for p in posts:]]
-  <div>
-    <p>[[=p]]</p>
+  <div class="card">
+    <div class="card-image">
+      <figure class="image is-128x128">
+        <img src="[[=p['post']['image_ref']]]" />
+      </figure>
+    </div>
+    <div class="card-content">
+      <div class="media">
+        <!-- <div class="media-left">
+          <figure class="image is-48x48">
+            <img
+              src="https://bulma.io/images/placeholders/96x96.png"
+              alt="Placeholder image"
+            />
+          </figure>
+        </div> -->
+        <div class="media-content">
+          <p class="title is-4">
+            [[=p['auth_user']['first_name']]] [[=p['auth_user']['last_name']]]
+          </p>
+          <p class="subtitle is-6">[[=p['auth_user']['username']]]</p>
+        </div>
+      </div>
+      <div class="content">[[=p['post']['caption']]]</div>
+    </div>
+    [[pass]]
   </div>
-  [[pass]]
 </div>

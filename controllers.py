@@ -47,10 +47,12 @@ def index():
 def stream(stream_id=None):
     assert stream_id is not None
     stream = db.stream[stream_id]
-    # posts = db(db.post_stream_mapping.stream_id ==
-    #            stream_id)
+    posts = db(db.post_stream_mapping.stream_id  == stream_id).select(
+    db.post.ALL, db.auth_user.ALL,
+  join=[db.post.on(db.post.id == db.post_stream_mapping.post_id),
+        db.auth_user.on(db.post.created_by == db.auth_user.id)]
+    ).as_list()
     # posts should be an inner join of post and post_stream_mapping
-    posts = db(db.post_stream_mapping.stream_id == stream_id).select()
-    posts = [db.post[post.post_id] for post in posts]
+
     print(posts)
     return dict(stream=stream, posts=posts)
