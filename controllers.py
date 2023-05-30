@@ -36,4 +36,23 @@ def index():
     user = auth.get_user()
     message = T("Hello {first_name}".format(**user) if user else "Hello")
     actions = {"allowed_actions": auth.param.allowed_actions}
-    return dict(message=message, actions=actions)
+
+    # get all streams
+    streams = db(db.stream).select()
+    return dict(message=message, actions=actions, streams=streams)
+
+
+@action("stream/<stream_id:int>")
+@action.uses("s.html", auth, T)
+def stream(stream_id=None):
+    assert stream_id is not None
+    stream = db.stream[stream_id]
+    posts = db(db.post_stream_mapping.stream_id  == stream_id).select(
+    db.post.ALL, db.auth_user.ALL,
+  join=[db.post.on(db.post.id == db.post_stream_mapping.post_id),
+        db.auth_user.on(db.post.created_by == db.auth_user.id)]
+    ).as_list()
+    # posts should be an inner join of post and post_stream_mapping
+
+    print(posts)
+    return dict(stream=stream, posts=posts)
