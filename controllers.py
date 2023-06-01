@@ -30,7 +30,6 @@ from py4web import action, request, abort, redirect, URL
 from yatl.helpers import A
 from .common import db, session, T, cache, auth, logger, authenticated, unauthenticated, flash
 
-
 @action("index")
 @action.uses("index.html", auth)
 def index():
@@ -56,3 +55,26 @@ def stream(stream_id=None):
     ).as_list()
 
     return dict(stream=db.stream[stream_id], posts=json.dumps(posts))
+    
+@action('create_stream', method=['GET', 'POST'])
+@action.uses('db', 'session', 'create_stream.html', auth)
+def create_stream():
+    if request.method == 'GET':
+        return dict()
+    elif request.method == 'POST':
+        stream_name = request.POST.get('streamName')
+        file = request.files.get('file')
+        
+        user = auth.get_user()
+        
+        existing_stream = db(db.stream.name == stream_name).select().first()
+        if existing_stream:
+            return {'error': 'Stream name already exists'}
+        
+        stream_id = db.stream.insert(
+            name=stream_name
+        )
+        
+        # Use file data to train stream
+        
+        return redirect(URL('index'))

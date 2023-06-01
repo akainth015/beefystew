@@ -1,0 +1,62 @@
+[[extend "layout.html"]]
+
+[[block page_styles]]
+<style>
+  .form-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+  }
+
+  .form-group {
+    margin-bottom: 1rem;
+    width: 100%;
+  }
+
+  .form-container form {
+    max-width: 400px;
+    width: 100%;
+  }
+
+  .start-training-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+</style>
+[[end]]
+
+<div id="app">
+  <div class="container">
+    <div class="form-container">
+      <h1>Create Stream</h1>
+      <form @submit.prevent="submitStream">
+        <div class="field">
+          <label class="label" for="streamName">Stream Name</label>
+          <div class="control">
+            <input type="text" id="streamName" v-model="streamName" class="input" required>
+          </div>
+        </div>
+        <div class="field">
+          <label class="label" for="fileUpload">Upload Training Data</label>
+          <div class="control">
+            <input type="file" id="fileUpload" @change="handleFileUpload" class="input" required>
+          </div>
+        </div>
+        <div class="field">
+          <div class="control start-training-button">
+            <button type="submit" class="button is-primary is-rounded">Start Training</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+[[block page_scripts]]
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios@0.21.1/dist/axios.min.js"></script>
+<script src="js/create_stream.js"></script>
+[[end]]
