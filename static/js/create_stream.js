@@ -19,7 +19,7 @@ new Vue({
           if (response.data.error) {
               console.error(response.data.error);
           } else {
-              window.location.href = '/beefystew/index';
+              window.location.href = `/beefystew/stream/${response.data.stream_id}`;
           }
         })
         .catch(error => {
