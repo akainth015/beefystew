@@ -22,14 +22,21 @@ from .common import db, Field, auth
 
 db.define_table('post',
                 Field('created_by', 'reference auth_user'),
-                Field('image_ref', 'blob'),
+                Field('image_ref', type='string'),
                 Field('caption', 'text'),
+                )
+
+db.define_table('neural_network',
+                Field('created_by', type='reference auth_user', required=True, notnull=True),
+                Field('is_trained', type='boolean', default=False),
+                # store a reference to file that contains the weights
+                Field('weights', type='string', default=None)
                 )
 
 db.define_table('stream',
                 Field('created_by', 'reference auth_user'),
-                Field('name', 'string'),
-                Field('nn_id', 'string'),
+                Field('name', 'string', required=True, requires=IS_NOT_EMPTY()),
+                Field('nn_id', 'reference neural_network'),
                 )
 
 db.define_table('post_stream_mapping',

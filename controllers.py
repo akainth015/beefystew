@@ -30,7 +30,6 @@ from py4web import action, request, abort, redirect, URL
 from yatl.helpers import A
 from .common import db, session, T, cache, auth, logger, authenticated, unauthenticated, flash
 
-
 @action("index")
 @action.uses("index.html", auth)
 def index():
@@ -56,3 +55,36 @@ def stream(stream_id=None):
     ).as_list()
 
     return dict(stream=db.stream[stream_id], posts=json.dumps(posts))
+
+
+@action('create_stream', method='GET')
+@action.uses('create_stream.html', auth.user)
+def create_stream():
+    return dict()
+
+
+@action('create_stream', method='POST')
+@action.uses(db, session, auth.user)
+def create_stream_post():
+    stream_name = request.POST.get('streamName')
+    file = request.files.get('file')
+
+    user = auth.get_user()
+
+    existing_stream = db(db.stream.name == stream_name).select().first()
+    if existing_stream:
+        return {'error': 'Stream name already exists'}
+
+    nn_id = db.neural_network.insert(
+        created_by=user.get('id'),
+    )
+
+    stream_id = db.stream.insert(
+        created_by=auth.current_user.get('id'),
+        name=stream_name,
+        nn_id=nn_id
+    )
+
+    # Use file data to train stream
+
+    return dict(stream_id=stream_id)
