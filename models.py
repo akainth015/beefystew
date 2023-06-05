@@ -35,6 +35,7 @@ db.define_table('post',
                 Field('file_path'),
                 Field('file_size', 'integer'),
                 Field('confirmed', 'boolean', default=False),
+                Field('custom', 'text'),
                 )
 # db.define_table('upload', 
 #                 Field('owner', default=get_user_email),
@@ -53,9 +54,16 @@ db.define_table('neural_network',
                 Field('weights', type='string', default=None)
                 )
 
+db.define_table('custom_field',
+                Field('created_by', type='reference auth_user', required=True, notnull=True),
+                Field('answers', type='string', default=None)
+                )
+
 db.define_table('stream',
                 Field('created_by', 'reference auth_user'),
                 Field('name', 'string', required=True, requires=IS_NOT_EMPTY()),
+                Field('custom_question', 'string'),
+                Field('custom_answer', 'reference custom_field'),
                 Field('nn_id', 'reference neural_network'),
                 )
 
@@ -97,6 +105,10 @@ def add_streams_for_testing():
     s = dict(
         created_by=cb,
         name="Banana",
+        custom_question="fruit or veggie",
+        custom_answer=db.custom_field.insert(
+            created_by = cb,
+        ),
         nn_id=db.neural_network.insert(
             created_by = cb,
         ),
@@ -107,6 +119,10 @@ def add_streams_for_testing():
     s = dict(
         created_by=cb,
         name="Apple",
+        custom_question="fruit or veggie",
+        custom_answer=db.custom_field.insert(
+            created_by = cb,
+        ),
         nn_id=db.neural_network.insert(
             created_by = cb,
         ),
@@ -127,12 +143,15 @@ def add_posts_for_testing(num_posts=15):
     for k in range(num_test_posts, num_posts):
 
         caption = random.choice(f"test caption {k}")
+        custom = "what is this fruit?"
         created_b = random.choice(
             db(db.auth_user.username.startswith("_")).select().as_list())['id']
         post = dict(
             caption=caption,
+            custom=custom,
             created_by=created_b,
             image_ref=banana_image,
+
         )
         p = db.post.insert(**post)
 

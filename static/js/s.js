@@ -13,6 +13,8 @@ createApp({
             deleting: false, // delete in progress
             delete_confirmation: false, // Show the delete confirmation thing.
             posts: [],
+            answer: '',
+            results: []
         }
     },
     
@@ -129,9 +131,10 @@ createApp({
                 // console.log(file_path)
                 // console.log(download_url)
             })
-        }
-
-
+        },
+        submit_answer() {
+            console.log(answer);
+        },
     },
     computed: {
         file_info() {

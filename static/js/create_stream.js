@@ -2,7 +2,8 @@ new Vue({
   el: '#app',
   data: {
     streamName: '',
-    file: null
+    file: null,
+    customQuestion: ''
   },
   methods: {
     handleFileUpload(event) {
@@ -12,6 +13,7 @@ new Vue({
       const formData = new FormData();
       formData.append('streamName', this.streamName);
       formData.append('file', this.file);
+      formData.append('customQuestion', this.customQuestion);
 
       axios.post('/beefystew/create_stream', formData)
         .then(response => {
