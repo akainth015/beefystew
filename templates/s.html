@@ -40,6 +40,13 @@
               </div>
             </div>
             <div class="content">{{post.post.caption}}</div>
+            <div class="content">[[=stream.custom_question]]</div>
+            <div>
+            <input v-model="answer" class="input" type="text" placeholder="Answer">
+            </div>
+            <div>
+            <button @click="submit_answer" class="button is-primary is-rounded">Submit</button>
+            </div>
           </div>
         </div>
       </div>
