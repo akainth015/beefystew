@@ -25,10 +25,17 @@ session, db, T, auth, and templates are examples of Fixtures.
 Warning: Fixtures MUST be declared with @action.uses({fixtures}) else your app will result in undefined behavior
 """
 import json
+import pathlib
 
-from py4web import action, request, abort, redirect, URL
+from py4web import action, request, abort, redirect, URL, HTTP
 from yatl.helpers import A
-from .common import db, session, T, cache, auth, logger, authenticated, unauthenticated, flash
+
+from . import settings
+from .common import db, session, T, cache, auth, logger, authenticated, unauthenticated, flash, model
+import subprocess
+import sys
+import tensorflow as tf
+
 
 @action("index")
 @action.uses("index.html", auth)
@@ -55,6 +62,32 @@ def stream(stream_id=None):
     ).as_list()
 
     return dict(stream=db.stream[stream_id], posts=json.dumps(posts))
+
+
+@action('stream/<stream_id:int>/post')
+@action.uses('post.html', auth.user, db)
+def post_image(stream_id):
+    return dict(stream_id=stream_id)
+
+
+@action('stream/<stream_id:int>/classify', method='POST')
+@action.uses(auth.user, db)
+def classify(stream_id):
+    print(request.files)
+    post = request.files.get("image")
+    stream = db.stream[stream_id]
+    model.load_weights(f"{stream.name}.h5")
+
+    path = pathlib.Path("apps", settings.APP_NAME, "posts", post.filename)
+    post.save(str(path), overwrite=True)
+
+    image = tf.io.read_file(str(path))
+    image = tf.image.decode_image(image, channels=3)
+
+    image = tf.image.resize(image, [224, 224])
+    image = tf.expand_dims(image, 0)
+
+    return dict(result=model(image).numpy().item())
 
 
 @action('create_stream', method='GET')
@@ -85,6 +118,16 @@ def create_stream_post():
         nn_id=nn_id
     )
 
+    # file.save(file.filename, overwrite=True)
+
+    import zipfile
+    zipfile.ZipFile(file.file, mode='r').extractall(f"train_{stream_name}")
+    import pathlib
+    train_script = pathlib.Path("apps", settings.APP_NAME, "create_weights.py")
+
     # Use file data to train stream
+    training_process = subprocess.run([sys.executable, train_script, f"train_{stream_name}", stream_name])
+    if training_process.returncode != 0:
+        return HTTP(500, training_process.stdout)
 
     return dict(stream_id=stream_id)

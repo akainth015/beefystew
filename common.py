@@ -215,3 +215,14 @@ auth.enable(uses=(session, T, db), env=dict(T=T))
 # #######################################################
 unauthenticated = ActionFactory(db, session, T, flash, auth)
 authenticated = ActionFactory(db, session, T, flash, auth.user)
+
+import tensorflow as tf
+import tensorflow_hub as hub
+
+from pathlib import Path
+
+sm_path = Path('apps', settings.APP_NAME, 'swin_transformers.keras')
+
+model = tf.keras.saving.load_model(str(sm_path), custom_objects=dict(
+    KerasLayer=hub.KerasLayer
+))
