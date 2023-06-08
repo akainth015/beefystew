@@ -9,6 +9,10 @@ from pydal.validators import *
 from .common import db, Field, auth
 
 
+
+def get_user_email():
+    return auth.current_user.get('email') if auth.current_user else None
+
 # Define your table below
 #
 # db.define_table('thing', Field('name'))
@@ -20,10 +24,19 @@ from .common import db, Field, auth
 # 2. created_by
 # 3. image_ref (link to blob storage)
 
-db.define_table('post',
-                Field('created_by', 'reference auth_user'),
-                Field('image_ref', type='string'),
-                Field('caption', 'text'),
+# db.define_table('post',
+#                 Field('created_by', 'reference auth_user'),
+#                 Field('image_ref', type='string'),
+#                 Field('caption', 'text'),
+#                 )
+db.define_table('upload',
+                Field('owner', default=get_user_email),
+                Field('file_name'),
+                Field('file_type'),
+                Field('file_date'),
+                Field('file_path'),
+                Field('file_size', 'integer'),
+                Field('confirmed', 'boolean', default=False),
                 )
 
 db.define_table('neural_network',
@@ -40,7 +53,8 @@ db.define_table('stream',
                 )
 
 db.define_table('post_stream_mapping',
-                Field('post_id', 'reference post'),
+                # Field('post_id', 'reference post'),
+                Field('post_id', 'reference upload'),
                 Field('stream_id', 'reference stream'),
                 )
 
