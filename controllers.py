@@ -42,19 +42,27 @@ def index():
     return dict(message=message, actions=actions, streams=streams)
 
 
+# @action("stream/<stream_id:int>")
+# @action.uses("s.html", auth, T)
+# def stream(stream_id=None):
+#     assert stream_id is not None
+#     posts = db(db.post_stream_mapping.stream_id == stream_id).select(
+#         db.post.ALL, db.auth_user.ALL,
+#         join=[
+#             db.post.on(db.post.id == db.post_stream_mapping.post_id),
+#             db.auth_user.on(db.post.created_by == db.auth_user.id)
+#         ]
+#     ).as_list()
+
+#     return dict(stream=db.stream[stream_id], posts=json.dumps(posts))
+
 @action("stream/<stream_id:int>")
 @action.uses("s.html", auth, T)
-def stream(stream_id=None):
-    assert stream_id is not None
-    posts = db(db.post_stream_mapping.stream_id == stream_id).select(
-        db.post.ALL, db.auth_user.ALL,
-        join=[
-            db.post.on(db.post.id == db.post_stream_mapping.post_id),
-            db.auth_user.on(db.post.created_by == db.auth_user.id)
-        ]
-    ).as_list()
-
-    return dict(stream=db.stream[stream_id], posts=json.dumps(posts))
+def stream(stream_id = None):
+    assert stream_id is not None, "stream: stream_id is None"
+    stream = db.stream[stream_id]
+    assert stream is not None, "stream: stream is None object"
+    return dict(stream = stream)
 
 
 @action('create_stream', method='GET')
@@ -66,6 +74,7 @@ def create_stream():
 @action('create_stream', method='POST')
 @action.uses(db, session, auth.user)
 def create_stream_post():
+    print("THIS IS CREATING STREAM")
     stream_name = request.POST.get('streamName')
     file = request.files.get('file')
 

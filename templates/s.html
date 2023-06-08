@@ -10,50 +10,16 @@
 </style>
 
 <div class="section" id="app">
-  <div class="title is-2 has-text-centered">#[[=stream.name]]</div>
-  <div class="container">
-    <div class="tile is-ancestor is-center is-vertical" style="align-items: center">
-      <div class="tile is-parent is-8" v-for="post in posts">
-        <div class="tile is-child card m-4 p-4">
-          <div class="card-image">
-            <img :src="post.post.image_ref">
-          </div>
-          <div class="card-content">
-            <label>
-              <input type="checkbox" v-model="post.selected">
-              Include this image in download package
-            </label>
-            <div class="media">
-              <!-- <div class="media-left">
-                <figure class="image is-48x48">
-                  <img
-                    src="https://bulma.io/images/placeholders/96x96.png"
-                    alt="Placeholder image"
-                  />
-                </figure>
-              </div> -->
-              <div class="media-content">
-                <p class="title is-4">
-                  {{post.auth_user.first_name}} {{post.auth_user.last_name}}
-                </p>
-                <p class="subtitle is-6">{{post.auth_user.username}}</p>
-              </div>
-            </div>
-            <div class="content">{{post.post.caption}}</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="box has-background-white floating-toolbar p-4" v-if="posts.some(post => post.selected)">
-    <div class="buttons">
-      <button class="button is-primary" @click="downloadSelectedImages">Download Selected Images</button>
-    </div>
-  </div>
+  <div class="title is-2 has-text-centered">#[[=stream]]</div>
+    <div class="container">
+      <div class="tile is-ancestor is-center is-vertical" style="align-items: center">
+        <h1>hello this is the body</h1>
+      </div> 
+  </div> 
 </div>
 
 <script>
-  const initPosts = JSON.parse('[[=XML(posts)]]');
+
 </script>
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
