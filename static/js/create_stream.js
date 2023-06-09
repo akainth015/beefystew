@@ -1,30 +1,35 @@
 new Vue({
-  el: '#app',
-  data: {
-    streamName: '',
-    file: null
-  },
-  methods: {
-    handleFileUpload(event) {
-      this.file = event.target.files[0];
+    el: '#app',
+    data: {
+        streamName: '',
+        file: null,
+        trainingStatus: "Start Training",
     },
-    submitStream() {
-      const formData = new FormData();
-      formData.append('streamName', this.streamName);
-      formData.append('file', this.file);
+    methods: {
+        handleFileUpload(event) {
+            this.file = event.target.files[0];
+        },
+        submitStream() {
+            const formData = new FormData();
+            formData.append('streamName', this.streamName);
+            formData.append('file', this.file);
 
-      axios.post('/beefystew/create_stream', formData)
-        .then(response => {
-          console.log(response.data);
-          if (response.data.error) {
-              console.error(response.data.error);
-          } else {
-              window.location.href = `/beefystew/stream/${response.data.stream_id}`;
-          }
-        })
-        .catch(error => {
-          console.error(error);
-        });
+            this.trainingStatus = "Started";
+
+            axios.post('/beefystew/create_stream', formData)
+                .then(response => {
+                    this.trainingStatus = "Finished";
+                    console.log(response.data);
+                    if (response.data.error) {
+                        this.trainingStatus = "Failed";
+                        console.error(response.data.error);
+                    } else {
+                        window.location.href = `/beefystew/stream/${response.data.stream_id}`;
+                    }
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+        }
     }
-  }
 });

@@ -33,7 +33,8 @@ from yatl.helpers import A
 from . import settings
 from .common import db, session, T, cache, auth, logger, authenticated, unauthenticated, flash, model
 import subprocess
-import sys
+import tempfile
+import shutil
 import tensorflow as tf
 
 
@@ -73,10 +74,10 @@ def post_image(stream_id):
 @action('stream/<stream_id:int>/classify', method='POST')
 @action.uses(auth.user, db)
 def classify(stream_id):
-    print(request.files)
     post = request.files.get("image")
     stream = db.stream[stream_id]
-    model.load_weights(f"{stream.name}.h5")
+    weights_file = str(pathlib.Path("apps", settings.APP_NAME, "weights", f"{stream.name}.h5"))
+    model.load_weights(weights_file)
 
     path = pathlib.Path("apps", settings.APP_NAME, "posts", post.filename)
     post.save(str(path), overwrite=True)
@@ -87,7 +88,8 @@ def classify(stream_id):
     image = tf.image.resize(image, [224, 224])
     image = tf.expand_dims(image, 0)
 
-    return dict(result=model(image).numpy().item())
+    confidence = model(image).numpy().item()
+    return dict(result="Accepted" if confidence > .9 else "Rejected")
 
 
 @action('create_stream', method='GET')
@@ -118,16 +120,43 @@ def create_stream_post():
         nn_id=nn_id
     )
 
-    # file.save(file.filename, overwrite=True)
+    train_dir = tempfile.mkdtemp()
 
     import zipfile
-    zipfile.ZipFile(file.file, mode='r').extractall(f"train_{stream_name}")
-    import pathlib
-    train_script = pathlib.Path("apps", settings.APP_NAME, "create_weights.py")
+    zipfile.ZipFile(file.file, mode='r').extractall(train_dir)
 
-    # Use file data to train stream
-    training_process = subprocess.run([sys.executable, train_script, f"train_{stream_name}", stream_name])
-    if training_process.returncode != 0:
-        return HTTP(500, training_process.stdout)
+    train_ds = tf.keras.utils.image_dataset_from_directory(
+        train_dir,
+        class_names=["no", "yes"],
+        label_mode="binary",
+        validation_split=0.2,
+        subset="training",
+        seed=123,
+        image_size=(224, 224),
+        batch_size=32
+    )
+
+    val_ds = tf.keras.utils.image_dataset_from_directory(
+        train_dir,
+        class_names=["no", "yes"],
+        label_mode="binary",
+        validation_split=0.2,
+        subset="validation",
+        seed=123,
+        image_size=(224, 224),
+        batch_size=32
+    )
+
+    model.compile(
+        optimizer=tf.keras.optimizers.Adam(learning_rate=0.1),
+        loss=tf.keras.losses.BinaryCrossentropy(),
+        metrics=['accuracy']
+    )
+    model.fit(train_ds, epochs=1, validation_data=val_ds)
+
+    weights_file = str(pathlib.Path("apps", settings.APP_NAME, "weights", f"{stream_name}.h5"))
+    model.save_weights(weights_file)
+
+    shutil.rmtree(train_dir)
 
     return dict(stream_id=stream_id)

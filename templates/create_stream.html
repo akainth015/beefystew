@@ -42,12 +42,12 @@
         <div class="field">
           <label class="label" for="fileUpload">Upload Training Data</label>
           <div class="control">
-            <input type="file" id="fileUpload" @change="handleFileUpload" class="input" required>
+            <input type="file" accept="application/zip" id="fileUpload" @change="handleFileUpload" class="input" required>
           </div>
         </div>
         <div class="field">
           <div class="control start-training-button">
-            <button type="submit" class="button is-primary is-rounded">Start Training</button>
+            <button type="submit" class="button is-primary is-rounded" :disabled="trainingStatus !== 'Start Training'">{{trainingStatus}}</button>
           </div>
         </div>
       </form>
