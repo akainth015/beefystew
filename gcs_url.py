@@ -1,7 +1,6 @@
 # This module is used to generate the signed URLs for GCS.
 import base64
 import time
-time.clock = time.time
 import urllib.parse
 
 # If these packages are not found, install pycryptodome.

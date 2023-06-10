@@ -30,23 +30,6 @@ from py4web import action, request, abort, redirect, URL
 from yatl.helpers import A
 from .common import db, session, T, cache, auth, logger, authenticated, unauthenticated, flash
 
-import datetime
-import os 
-import traceback 
-import uuid 
-from nqgcs import NQGCS 
-from .models import get_user_email 
-from .settings import APP_FOLDER 
-from .gcs_url import gcs_url
-
-bucket = "/beefystew-cse-183"
-GCS_KEY_PATH = os.path.join(APP_FOLDER, 'private/gcs_keys.json')
-with open(GCS_KEY_PATH) as gcs_key_f:
-    GCS_KEYS = json.load(gcs_key_f)
-
-gcs = NQGCS(json_key_path=GCS_KEY_PATH)
-
-
 @action("index")
 @action.uses("index.html", auth)
 def index():
@@ -76,120 +59,12 @@ def index():
 @action("stream/<stream_id:int>")
 @action.uses("s.html", auth, T)
 def stream(stream_id = None):
-    print('\nloading s.html\n')
     assert stream_id is not None, "stream: stream_id is None"
     stream = db.stream[stream_id]
     assert stream is not None, "stream: stream is None object"
-    return dict(
-        stream = stream,
-        file_info_url = URL('file_info'),
-        obtain_gcs_url = URL('obtain_gcs'),
-        notify_url = URL('notify_upload'),
-        delete_url = URL('notify_delete'),
-        )
+    return dict(stream = stream)
 
 
-@action('file_info')
-@action.uses(db)
-def file_info():
-    print("\nFILE_INFO\n")
-    row = db(db.upload.owner == get_user_email()).select().first()
-    if row is not None and not row.confirmed:
-        delete_path(row.file_path)
-        row.delete_record() 
-        row = {}
-    if row is None:
-        row = {}
-    file_path = row.get('file_path')
-    return dict(
-        file_name=row.get('file_name'),
-        file_type=row.get('file_type'),
-        file_date=row.get('file_date'),
-        file_size=row.get('file_size'),
-        file_path=file_path,
-        download_url=None if file_path is None else gcs_url(GCS_KEYS, file_path),
-        # These two could be controlled to get other things done.
-        upload_enabled=True,
-        download_enabled=True,
-    )
-
-@action('obtain_gcs', method="POST")
-@action.uses(db)
-def obtain_gcs():
-    print("\nOBTAIN_GCS\n")
-    verb = request.json.get("action")
-    if verb == "PUT":
-        mimetype = request.json.get("mimetype", "")
-        file_name = request.json.get("file_name")
-        extension = os.path.splitext(file_name)[1]
-        file_path = bucket + "/" + str(uuid.uuid1()) + extension 
-        mark_possible_upload(file_path) ## 
-        upload_url = gcs_url(GCS_KEYS, file_path, verb='PUT',
-                             content_type=mimetype)
-        return dict(signed_url=upload_url, file_path=file_path)
-    elif verb in ["GET", "DELETE"]:
-        file_path = request.json.get("file_path")
-        if file_path is not None:
-            r = db(db.upload.file_path == file_path).select().first()
-            if r is not None and r.owner == get_user_email():
-                signed_url = gcs_url(GCS_KEYS, file_path, verb=verb)
-                return dict(signed_url=signed_url)
-        return dict(signer_url=None)
-    
-
-def mark_possible_upload(file_path):
-    # delete_previous_uploads()
-
-    db.upload.insert(
-        owner=get_user_email(),
-        file_path=file_path,
-        confirmed=False,
-    )
-
-@action('notify_upload', method="POST")
-@action.uses(db)
-def notify_upload():
-    print("\nNOTIFY_UPLOAD\n")
-    file_type = request.json.get("file_type")
-    file_name = request.json.get("file_name")
-    file_path = request.json.get("file_path")
-    file_size = request.json.get("file_size")
-    # Deletes any previous file.
-    rows = db(db.upload.owner == get_user_email()).select()
-    for r in rows:
-        if r.file_path != file_path:
-            delete_path(r.file_path)
-    # Marks the upload as confirmed.
-    d = datetime.datetime.utcnow()
-    db.upload.update_or_insert(
-        ((db.upload.owner == get_user_email()) &
-         (db.upload.file_path == file_path)),
-        owner=get_user_email(),
-        file_path=file_path,
-        file_name=file_name,
-        file_type=file_type,
-        file_date=d,
-        file_size=file_size,
-        confirmed=True,
-    )
-    # Returns the file information.
-    return dict(
-        download_url=gcs_url(GCS_KEYS, file_path, verb='GET'),
-        file_date=d,
-    )
-
-
-def delete_path(file_path):
-    print("\nDELETE_PATH\n")
-    try: 
-        bucket, id = os.path.split(file_path)
-        gcs.delete(bucket[1:], id)
-    except: 
-        pass
-
-
-
-######################
 @action('create_stream', method='GET')
 @action.uses('create_stream.html', auth.user)
 def create_stream():

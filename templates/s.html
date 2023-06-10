@@ -9,47 +9,18 @@
   }
 </style>
 
-<!-- <div class="section" id="app">
-  <div class="title is-2 has-text-centered">#[[=stream.name]]</div>
+<div class="section" id="app">
+  <div class="title is-2 has-text-centered">#[[=stream]]</div>
     <div class="container">
       <div class="tile is-ancestor is-center is-vertical" style="align-items: center">
         <h1>hello this is the body</h1>
       </div> 
   </div> 
-</div> -->
-<div class="section" id="app" v-cloak>
-  <h1>[[=stream.name]]</h1>
-  <h1>HI BEEFY I LOVE YOU</h1>
-  <div class="field has-addons">
-    <p class="control">
-      <div class="file is-info">
-        <label class="file-label">
-          <input class="file-input" type="file" @change="upload_file($event)">
-          <span class="file-cta">
-            <span class="file-icon">
-              <i v-if="uploading" class="fa fa-spinner fa-pulse fa-fw"></i>
-              <i v-else class="fa fa-upload fa-fw"></i>
-            </span>
-            <span class="file-label">
-              <span v-if="!uploading">Upload new file</span>
-            </span>
-          </span>
-        </label>
-      </div>
-    </p>
-    <p class="control">
-      <!-- <span>{{file_info}}</span> -->
-    </p>
-  </div>
 </div>
 
 <script>
-  let file_info_url = "[[=XML(file_info_url)]]";
-  let obtain_gcs_url = "[[=XML(obtain_gcs_url)]]";
-  let notify_url = "[[=XML(notify_url)]]";
-  let delete_url = "[[=XML(delete_url)]]";
+
 </script>
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 <script src="[[=URL('static', 'js', 's.js')]]"></script>
-[[end]]
