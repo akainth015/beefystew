@@ -54,16 +54,10 @@ db.define_table('neural_network',
                 Field('weights', type='string', default=None)
                 )
 
-db.define_table('custom_field',
-                Field('created_by', type='reference auth_user', required=True, notnull=True),
-                Field('answers', type='string', default=None)
-                )
-
 db.define_table('stream',
                 Field('created_by', 'reference auth_user'),
                 Field('name', 'string', required=True, requires=IS_NOT_EMPTY()),
                 Field('custom_question', 'string'),
-                Field('custom_answer', 'reference custom_field'),
                 Field('nn_id', 'reference neural_network'),
                 )
 
@@ -106,9 +100,6 @@ def add_streams_for_testing():
         created_by=cb,
         name="Banana",
         custom_question="fruit or veggie",
-        custom_answer=db.custom_field.insert(
-            created_by = cb,
-        ),
         nn_id=db.neural_network.insert(
             created_by = cb,
         ),
@@ -120,9 +111,6 @@ def add_streams_for_testing():
         created_by=cb,
         name="Apple",
         custom_question="fruit or veggie",
-        custom_answer=db.custom_field.insert(
-            created_by = cb,
-        ),
         nn_id=db.neural_network.insert(
             created_by = cb,
         ),

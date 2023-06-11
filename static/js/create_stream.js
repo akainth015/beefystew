@@ -3,7 +3,7 @@ new Vue({
   data: {
     streamName: '',
     file: null,
-    customQuestion: ''
+    customQuestion: '',
   },
   methods: {
     handleFileUpload(event) {

@@ -13,8 +13,9 @@ createApp({
             deleting: false, // delete in progress
             delete_confirmation: false, // Show the delete confirmation thing.
             posts: [],
+            index: 1,
             answer: '',
-            results: []
+            results: [],
         }
     },
     
@@ -133,7 +134,9 @@ createApp({
             })
         },
         submit_answer() {
-            console.log(answer);
+            (this.results).push({index: this.index, answer: this.answer});
+            console.log(this.results);
+            this.index = this.index + 1;
         },
     },
     computed: {

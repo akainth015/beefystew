@@ -7,6 +7,18 @@
     width: 100vw;
     left: 0;
   }
+
+  .answer-field {
+    display: block;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .submit-button {
+    display: block;
+    align-items: center;
+    justify-content: center;
+  }
 </style>
 
 <!-- <div class="section" id="app">
@@ -67,11 +79,18 @@
             </div>
             <div class="content">{{post.post.caption}}</div>
             <div class="content">[[=stream.custom_question]]</div>
-            <div>
-            <input v-model="answer" class="input" type="text" placeholder="Answer">
+            <div v-for="u in results" class="field has-addons">
+                  <span>Answer #{{u.index}}: {{u.answer}}</span>
             </div>
-            <div>
-            <button @click="submit_answer" class="button is-primary is-rounded">Submit</button>
+            <div class="field">
+              <div class="control answer-field">
+                <input v-model="answer" class="input" type="text" placeholder="Answer">
+              </div>
+            </div>
+            <div class="field">
+              <div class="control submit-button">
+                <button @click="submit_answer" class="button is-primary is-rounded">Submit</button>
+              </div>
             </div>
           </div>
         </div>
