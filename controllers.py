@@ -73,6 +73,25 @@ def index():
 
 #     return dict(stream=db.stream[stream_id], posts=json.dumps(posts))
 
+
+@action('stream/<stream_id:int>/posts')
+def get_stream_posts(stream_id=None):
+    assert stream_id is not None
+    stream = db.stream[stream_id]
+    assert stream is not None
+    posts = db(db.post_stream_mapping.stream_id == stream_id).select(
+        db.post.ALL, db.auth_user.ALL,
+        join=[
+            db.post.on(db.post.id == db.post_stream_mapping.post_id),
+            db.auth_user.on(db.post.created_by == db.auth_user.id)
+        ],
+        orderby=~db.post.created_at
+    ).as_list()
+    for post in posts:
+        post['post']['image_ref'] = gcs_url(GCS_KEYS, post['post']['file_path'])
+    return posts
+
+
 @action("stream/<stream_id:int>")
 @action.uses("s.html", auth, T)
 def stream(stream_id = None):
@@ -91,7 +110,7 @@ def stream(stream_id = None):
         stream = stream,
         file_info_url = URL('file_info'),
         obtain_gcs_url = URL('obtain_gcs'),
-        notify_url = URL('notify_upload'),
+        notify_url = URL('stream', stream_id, 'notify_upload'),
         delete_url = URL('notify_delete'),
         posts = posts
         )
@@ -114,13 +133,14 @@ def file_info():
     if row is None:
         row = {}
     file_path = row.get('file_path')
+    two_weeks = 3600 * 24 * 7 * 2
     return dict(
         file_name=row.get('file_name'),
         file_type=row.get('file_type'),
         file_date=row.get('file_date'),
         file_size=row.get('file_size'),
         file_path=file_path,
-        download_url=None if file_path is None else gcs_url(GCS_KEYS, file_path),
+        download_url=None if file_path is None else gcs_url(GCS_KEYS, file_path, expiration_secs=two_weeks),
         # These two could be controlled to get other things done.
         upload_enabled=True,
         download_enabled=True,
@@ -160,13 +180,14 @@ def mark_possible_upload(file_path):
 
     db.post.insert(
         created_by=auth.current_user.get("id"),
+        created_at=datetime.datetime.now(),
         file_path=file_path,
         confirmed=False,
     )
 
-@action('notify_upload', method="POST")
+@action('stream/<stream_id:int>/notify_upload', method="POST")
 @action.uses(db, session)
-def notify_upload():
+def notify_upload(stream_id=None):
     print("\nNOTIFY_UPLOAD\n")
     file_type = request.json.get("file_type")
     file_name = request.json.get("file_name")
@@ -184,6 +205,7 @@ def notify_upload():
         ((db.post.created_by == auth.current_user.get("id")) &
          (db.post.file_path == file_path)),
         created_by=auth.current_user.get("id"),
+        created_at=datetime.datetime.now(),
         file_path=file_path,
         file_name=file_name,
         file_type=file_type,
@@ -191,6 +213,10 @@ def notify_upload():
         file_size=file_size,
         confirmed=True,
         image_ref=download_url
+    )
+    db.post_stream_mapping.insert(
+        post_id=db(db.post.file_path == file_path).select().first().id,
+        stream_id=stream_id,
     )
     # Returns the file information.
     return dict(
