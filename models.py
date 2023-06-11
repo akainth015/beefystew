@@ -26,6 +26,7 @@ def get_user_email():
 
 db.define_table('post',
                 Field('created_by', 'reference auth_user'),
+                Field('created_at', type='datetime'),
                 Field('image_ref', type='string'),
                 Field('caption', 'text'),
                 Field('file_name'),

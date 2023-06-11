@@ -12,6 +12,7 @@ createApp({
             uploading: false, // upload in progress
             deleting: false, // delete in progress
             delete_confirmation: false, // Show the delete confirmation thing.
+            posts: [],
         }
     },
     
@@ -98,8 +99,8 @@ createApp({
                     let file_path = response.data.file_path 
                     // var XMLHttpRequest = require("xmlhttprequest").XMLHttprequest;
                     var req = new XMLHttpRequest();
-                    req.addEventListener("load", 
-                        this.upload_complete(file_name, file_type, file_size, file_path)
+                    req.addEventListener("load",
+                        () => this.upload_complete(file_name, file_type, file_size, file_path)
                     );
                     req.open("PUT", upload_url, true)
                     req.send(file)
@@ -145,6 +146,10 @@ createApp({
             console.log("INITIALIZATION")
             this.set_result(response);
         })
+        axios.get(get_posts_url)
+            .then((response) => {
+                this.posts = response.data;
+            });
     },
     
 }).mount('#app');
