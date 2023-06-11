@@ -2,7 +2,7 @@
 import base64
 import time
 import urllib.parse
-
+time.clock = time.time
 # If these packages are not found, install pycryptodome.
 # You may need to add this to the requirements.txt
 import Crypto.Hash.SHA256 as SHA256
