@@ -1,3 +1,8 @@
 databases/*
 !databases/README.md
 settings_private.py
+weights/*
+!weights/.gitkeep
+posts/*
+!posts/.gitkeep
+*.pyc

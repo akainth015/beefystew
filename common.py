@@ -5,6 +5,8 @@ These are fixtures that every app needs, so probably you will not be editing thi
 import os
 import sys
 import logging
+import threading
+
 from py4web import Session, Cache, Translator, Flash, DAL, Field, action
 from py4web.utils.form import FormStyleBulma
 from py4web.utils.mailer import Mailer
@@ -215,3 +217,21 @@ auth.enable(uses=(session, T, db), env=dict(T=T))
 # #######################################################
 unauthenticated = ActionFactory(db, session, T, flash, auth)
 authenticated = ActionFactory(db, session, T, flash, auth.user)
+
+import tensorflow as tf
+import tensorflow_hub as hub
+
+model = tf.keras.Sequential([
+    tf.keras.Input(shape=(224, 224, 3)),
+    tf.keras.layers.Rescaling(1./255),
+    tf.keras.layers.RandomFlip(),
+    tf.keras.layers.RandomRotation(0.2),
+    tf.keras.layers.RandomZoom(0.1),
+    hub.KerasLayer(
+        "https://tfhub.dev/sayakpaul/swin_tiny_patch4_window7_224_fe/1",
+        input_shape=(224, 224, 3),
+        trainable=False,
+    ),
+    tf.keras.layers.Dropout(0.7),
+    tf.keras.layers.Dense(1, activation="sigmoid"),
+])
