@@ -3,15 +3,7 @@ const {createApp} = Vue;
 createApp({
     data() {
         return {
-            file_name: null, // File name
-            file_type: null, // File type
-            file_date: null, // Date when file uploaded
-            file_path: null, // Path of file in GCS
-            file_size: null, // Size of uploaded file
-            download_url: null, // URL to download a file
             uploading: false, // upload in progress
-            deleting: false, // delete in progress
-            delete_confirmation: false, // Show the delete confirmation thing.
             posts: [],
         }
     },
@@ -45,7 +37,6 @@ createApp({
         },
 
         file_info() {
-            console.log("file_info")
             if (this.file_path) {
                 let info = "";
                 if (this.file_size) {
@@ -69,18 +60,7 @@ createApp({
                 return "";
             }
         },
-        set_result (r) {
-            console.log("SET_RESULT")
-            // Sets the results after a server call.
-            file_name = r.data.file_name;
-            file_type = r.data.file_type;
-            file_date = r.data.file_date;
-            file_path = r.data.file_path;
-            file_size = r.data.file_size;
-            download_url = r.data.download_url;
-        },
         upload_file(event) {
-            console.log("UPLOAD_FILE")
             let input = event.target;
             let file = input.files[0]
             if (file) {
@@ -94,10 +74,8 @@ createApp({
                     file_name: file_name
                 })
                 .then (response => {
-                    console.log("UPLOAD_FILE PROMISE")
                     let upload_url = response.data.signed_url
                     let file_path = response.data.file_path 
-                    // var XMLHttpRequest = require("xmlhttprequest").XMLHttprequest;
                     var req = new XMLHttpRequest();
                     req.addEventListener("load",
                         () => this.upload_complete(file_name, file_type, file_size, file_path)
@@ -108,44 +86,17 @@ createApp({
             }
         },
         upload_complete (file_name, file_type, file_size, file_path) {
-            console.log("UPLOAD_COMPLETE")
             axios.post(notify_url, {
-                file_name: file_name, 
-                file_type: file_type,
                 file_path: file_path,
-                file_size: file_size,
             })
             .then(response => {
-                console.log("UPLOAD_COMPLETE PROMISE")
                 this.uploading = false;
-                file_name = file_name;
-                file_type = file_type;
-                file_path = file_path;
-                file_size = file_size;
-                file_date = response.data.file_date;
-                download_url = response.data.download_url;
-                // console.log(file_name)
-                // console.log(file_type)
-                // console.log(file_path)
-                // console.log(download_url)
             })
         }
 
 
     },
-    computed: {
-        file_info() {
-            console.log("COMPUTED FILE_INFO")
-            return this.file_info
-        }
-    },
     created() {
-        console.log("HELLO THIS IS INIT")
-        axios.get(file_info_url)
-        .then(response => {
-            console.log("INITIALIZATION")
-            this.set_result(response);
-        })
         axios.get(get_posts_url)
             .then((response) => {
                 this.posts = response.data;

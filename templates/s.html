@@ -9,16 +9,8 @@
   }
 </style>
 
-<!-- <div class="section" id="app">
-  <div class="title is-2 has-text-centered">#[[=stream.name]]</div>
-    <div class="container">
-      <div class="tile is-ancestor is-center is-vertical" style="align-items: center">
-        <h1>hello this is the body</h1>
-      </div>
-  </div>
-</div> -->
 <div class="section" id="app" v-cloak>
-  <h1>[[=stream.name]]</h1>
+  <h1 class="title is-2 has-text-centered">#[[=stream.name]]</h1>
     <div class="field has-addons">
       <p class="control">
         <div class="file is-info">
@@ -29,10 +21,10 @@
                   <i v-if="uploading" class="fa fa-spinner fa-pulse fa-fw"></i>
                   <i v-else class="fa fa-upload fa-fw"></i>
                 </span>
-                  <span class="file-label">
+                <span class="file-label">
                   <span v-if="!uploading">Upload new file</span>
                 </span>
-            </span>
+              </span>
           </label>
         </div>
       </p>
@@ -50,14 +42,6 @@
               Include this image in download package
             </label>
             <div class="media">
-              <!-- <div class="media-left">
-                <figure class="image is-48x48">
-                  <img
-                    src="https://bulma.io/images/placeholders/96x96.png"
-                    alt="Placeholder image"
-                  />
-                </figure>
-              </div> -->
               <div class="media-content">
                 <p class="title is-4">
                   {{post.auth_user.first_name}} {{post.auth_user.last_name}}

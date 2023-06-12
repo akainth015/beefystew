@@ -39,21 +39,13 @@ import tensorflow as tf
 
 
 import datetime
-import os
-import traceback
-import uuid
-from nqgcs import NQGCS
-from .models import get_user_email
-from .settings import APP_FOLDER
+import os 
+import traceback 
+import uuid 
+from nqgcs import NQGCS 
+from .models import get_user_email 
+from .settings import APP_FOLDER, bucket, GCS_KEY_PATH, GCS_KEYS
 from .gcs_url import gcs_url
-
-bucket = "/beefystew-cse-183"
-GCS_KEY_PATH = os.path.join(APP_FOLDER, 'private/gcs_keys.json')
-with open(GCS_KEY_PATH) as gcs_key_f:
-    GCS_KEYS = json.load(gcs_key_f)
-
-gcs = NQGCS(json_key_path=GCS_KEY_PATH)
-
 
 @action("index")
 @action.uses("index.html", auth)
@@ -65,22 +57,6 @@ def index():
     # get all streams
     streams = db(db.stream).select()
     return dict(message=message, actions=actions, streams=streams)
-
-
-# @action("stream/<stream_id:int>")
-# @action.uses("s.html", auth, T)
-# def stream(stream_id=None):
-#     assert stream_id is not None
-#     posts = db(db.post_stream_mapping.stream_id == stream_id).select(
-#         db.post.ALL, db.auth_user.ALL,
-#         join=[
-#             db.post.on(db.post.id == db.post_stream_mapping.post_id),
-#             db.auth_user.on(db.post.created_by == db.auth_user.id)
-#         ]
-#     ).as_list()
-
-#     return dict(stream=db.stream[stream_id], posts=json.dumps(posts))
-
 
 @action('stream/<stream_id:int>/posts')
 def get_stream_posts(stream_id=None):
@@ -99,11 +75,9 @@ def get_stream_posts(stream_id=None):
         post['post']['image_ref'] = gcs_url(GCS_KEYS, post['post']['file_path'])
     return posts
 
-
 @action("stream/<stream_id:int>")
 @action.uses("s.html", auth, T)
 def stream(stream_id = None):
-    print('\nloading s.html\n')
     assert stream_id is not None, "stream: stream_id is None"
     stream = db.stream[stream_id]
     assert stream is not None, "stream: stream is None object"
@@ -123,30 +97,16 @@ def stream(stream_id = None):
         posts = posts
         )
 
-# upload happens as a form
-# submitting form goes to url that checks whether image is accepted by stream
-# if yes, create post entry in database after uploading to gcs
-# create post stream mapping to associate post with stream
 
 @action('file_info')
 @action.uses(db)
 def file_info():
-    print("\nFILE_INFO\n")
     row = db(db.post.created_by == db.auth_user.id).select().first()
-    print(row)
-    # if row is not None and not row.confirmed:
-    #     # delete_path(row.file_path)
-    #     row.delete_record()
-    #     row = {}
     if row is None:
         row = {}
     file_path = row.get('file_path')
     two_weeks = 3600 * 24 * 7 * 2
     return dict(
-        file_name=row.get('file_name'),
-        file_type=row.get('file_type'),
-        file_date=row.get('file_date'),
-        file_size=row.get('file_size'),
         file_path=file_path,
         download_url=None if file_path is None else gcs_url(GCS_KEYS, file_path, expiration_secs=two_weeks),
         # These two could be controlled to get other things done.
@@ -155,14 +115,9 @@ def file_info():
     )
 
 
-@action('stream/<stream_id:int>/post', method='POST')
-def post_to_stream(stream_id):
-    pass
-
 @action('obtain_gcs', method="POST")
 @action.uses(db, session)
 def obtain_gcs():
-    print("\nOBTAIN_GCS\n")
     verb = request.json.get("action")
     if verb == "PUT":
         mimetype = request.json.get("mimetype", "")
@@ -184,8 +139,6 @@ def obtain_gcs():
 
 
 def mark_possible_upload(file_path):
-    # delete_previous_uploads()
-
     db.post.insert(
         created_by=auth.current_user.get("id"),
         created_at=datetime.datetime.now(),
@@ -193,21 +146,11 @@ def mark_possible_upload(file_path):
         confirmed=False,
     )
 
+
 @action('stream/<stream_id:int>/notify_upload', method="POST")
 @action.uses(db, session)
 def notify_upload(stream_id=None):
-    print("\nNOTIFY_UPLOAD\n")
-    file_type = request.json.get("file_type")
-    file_name = request.json.get("file_name")
     file_path = request.json.get("file_path")
-    file_size = request.json.get("file_size")
-    # Deletes any previous file.
-    # rows = db(db.post.created_by == db.auth_user.id).select()
-    # for r in rows:
-    #     if r.file_path != file_path:
-    #         delete_path(r.file_path)
-    # Marks the upload as confirmed.
-    d = datetime.datetime.utcnow()
     download_url=gcs_url(GCS_KEYS, file_path, verb='GET')
     db.post.update_or_insert(
         ((db.post.created_by == auth.current_user.get("id")) &
@@ -215,10 +158,6 @@ def notify_upload(stream_id=None):
         created_by=auth.current_user.get("id"),
         created_at=datetime.datetime.now(),
         file_path=file_path,
-        file_name=file_name,
-        file_type=file_type,
-        file_date=d,
-        file_size=file_size,
         confirmed=True,
         image_ref=download_url
     )
@@ -229,17 +168,8 @@ def notify_upload(stream_id=None):
     # Returns the file information.
     return dict(
         download_url=download_url,
-        file_date=d,
     )
 
-
-# def delete_path(file_path):
-#     print("\nDELETE_PATH\n")
-#     try:
-#         bucket, id = os.path.split(file_path)
-#         gcs.delete(bucket[1:], id)
-#     except:
-#         pass
 
 @action('stream/<stream_id:int>/post')
 @action.uses('post.html', auth.user, db)
@@ -277,7 +207,6 @@ def create_stream():
 @action('create_stream', method='POST')
 @action.uses(db, session, auth.user)
 def create_stream_post():
-    print("THIS IS CREATING STREAM")
     stream_name = request.POST.get('streamName')
     file = request.files.get('file')
 

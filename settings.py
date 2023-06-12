@@ -6,6 +6,7 @@ This is an optional file that defined app level settings such as:
 This file is provided as an example:
 """
 import os
+import json
 from py4web.core import required_folder
 
 # db settings
@@ -102,3 +103,8 @@ try:
     from .settings_private import *
 except (ImportError, ModuleNotFoundError):
     pass
+
+bucket = "/beefystew-cse-183"
+GCS_KEY_PATH = os.path.join(APP_FOLDER, 'private/gcs_keys.json')
+with open(GCS_KEY_PATH) as gcs_key_f:
+    GCS_KEYS = json.load(gcs_key_f)
