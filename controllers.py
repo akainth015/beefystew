@@ -248,7 +248,7 @@ def create_stream_post():
     print("THIS IS CREATING STREAM")
     stream_name = request.POST.get('streamName')
     file = request.files.get('file')
-
+    custom_question = request.POST.get('customQuestion')
     user = auth.get_user()
 
     existing_stream = db(db.stream.name == stream_name).select().first()
@@ -262,6 +262,7 @@ def create_stream_post():
     stream_id = db.stream.insert(
         created_by=auth.current_user.get('id'),
         name=stream_name,
+        custom_question=custom_question,
         nn_id=nn_id
     )
 

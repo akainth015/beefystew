@@ -78,6 +78,10 @@ OAUTH2FACEBOOK_CLIENT_SECRET = None
 OAUTH2GITHUB_CLIENT_ID = None
 OAUTH2GITHUB_CLIENT_SECRET = None
 
+# single sign on Google (will be used if provided)
+OAUTH2GOOGLE_CLIENT_ID = "283523400443-0v1hkavs233vmj8ibsc56n7rpae1um1o.apps.googleusercontent.com"
+OAUTH2GOOGLE_CLIENT_SECRET = "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"
+
 # enable PAM
 USE_PAM = False
 

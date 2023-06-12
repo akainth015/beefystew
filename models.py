@@ -56,6 +56,7 @@ db.define_table('neural_network',
 db.define_table('stream',
                 Field('created_by', 'reference auth_user'),
                 Field('name', 'string', required=True, requires=IS_NOT_EMPTY()),
+                Field('custom_question', 'string'),
                 Field('nn_id', 'reference neural_network'),
                 )
 
@@ -97,6 +98,7 @@ def add_streams_for_testing():
     s = dict(
         created_by=cb,
         name="Banana",
+        custom_question="fruit or veggie",
         nn_id=db.neural_network.insert(
             created_by = cb,
         ),
@@ -107,6 +109,7 @@ def add_streams_for_testing():
     s = dict(
         created_by=cb,
         name="Apple",
+        custom_question="fruit or veggie",
         nn_id=db.neural_network.insert(
             created_by = cb,
         ),

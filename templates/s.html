@@ -19,6 +19,20 @@
 </div> -->
 <div class="section" id="app" v-cloak>
   <h1>[[=stream.name]]</h1>
+  <div class="content">[[=stream.custom_question]]</div>
+            <div v-for="u in results" class="field has-addons">
+                  <span>Answer #{{u.index}}: {{u.answer}}</span>
+            </div>
+            <div class="field">
+              <div class="control answer-field">
+                <input v-model="answer" class="input" type="text" placeholder="Answer">
+              </div>
+            </div>
+            <div class="field">
+              <div class="control submit-button">
+                <button @click="submit_answer" class="button is-primary is-rounded">Submit</button>
+              </div>
+            </div>
     <div class="field has-addons">
       <p class="control">
         <div class="file is-info">
