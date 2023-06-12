@@ -34,13 +34,21 @@ for item in settings.LOGGERS:
 # #######################################################
 # connect to db
 # #######################################################
-db = DAL(
-    settings.DB_URI,
-    folder=settings.DB_FOLDER,
-    pool_size=settings.DB_POOL_SIZE,
-    migrate=settings.DB_MIGRATE,
-    fake_migrate=settings.DB_FAKE_MIGRATE,
-)
+if (os.environ.get("GAE_ENV")):
+    db = DAL(
+        settings.CLOUD_DB_URI,
+        pool_size=settings.CLOUD_DB_POOL_SIZE,
+        migrate=settings.CLOUD_DB_MIGRATE,
+        fake_migrate=settings.CLOUD_DB_FAKE_MIGRATE,
+    )
+else:
+    db = DAL(
+        settings.DB_URI,
+        folder=settings.DB_FOLDER,
+        pool_size=settings.DB_POOL_SIZE,
+        migrate=settings.DB_MIGRATE,
+        fake_migrate=settings.DB_FAKE_MIGRATE,
+    )
 
 # #######################################################
 # define global objects that may or may not be used by the actions
@@ -66,7 +74,8 @@ elif settings.SESSION_TYPE == "redis":
     )
     session = Session(secret=settings.SESSION_SECRET_KEY, storage=conn)
 elif settings.SESSION_TYPE == "memcache":
-    import memcache, time
+    import memcache
+    import time
 
     conn = memcache.Client(settings.MEMCACHE_CLIENTS, debug=0)
     session = Session(secret=settings.SESSION_SECRET_KEY, storage=conn)
@@ -131,7 +140,8 @@ if settings.USE_PAM:
 if settings.USE_LDAP:
     from py4web.utils.auth_plugins.ldap_plugin import LDAPPlugin
 
-    auth.register_plugin(LDAPPlugin(db=db, groups=groups, **settings.LDAP_SETTINGS))
+    auth.register_plugin(LDAPPlugin(
+        db=db, groups=groups, **settings.LDAP_SETTINGS))
 
 if settings.OAUTH2GOOGLE_CLIENT_ID:
     from py4web.utils.auth_plugins.oauth2google import OAuth2Google  # TESTED
@@ -181,11 +191,11 @@ if settings.OAUTH2OKTA_CLIENT_ID:
 # Define a convenience action to allow users to download
 # files uploaded and reference by Field(type='upload')
 # #######################################################
-if settings.UPLOAD_FOLDER:
-    @action('download/<filename>')                                                   
-    @action.uses(db)                                                                                           
-    def download(filename):
-        return downloader(db, settings.UPLOAD_FOLDER, filename) 
+# if settings.UPLOAD_FOLDER:
+#     @action('download/<filename>')
+#     @action.uses(db)
+#     def download(filename):
+#         return downloader(db, settings.UPLOAD_FOLDER, filename)
     # To take advantage of this in Form(s)
     # for every field of type upload you MUST specify:
     #

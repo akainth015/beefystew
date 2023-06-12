@@ -19,11 +19,16 @@ DB_POOL_SIZE = 1
 DB_MIGRATE = True
 DB_FAKE_MIGRATE = False  # maybe?
 
+CLOUD_DB_URI = f"google://MySQLdb://{DB_USER}:{DB_PASSWPRD}@/{DB_NAME}?unix_socket=/cloudsql/{DB_CONNECTION}"
+CLOUD_DB_POOL_SIZE = 1
+CLOUD_DB_MIGRATE = False  # IMPORTANT
+CLOUD_DB_FAKE_MIGRATE = False  # maybe?
+
 # location where static files are stored:
-STATIC_FOLDER = required_folder(APP_FOLDER, "static")
+# STATIC_FOLDER = required_folder(APP_FOLDER, "static")
 
 # location where to store uploaded files:
-UPLOAD_FOLDER = required_folder(APP_FOLDER, "uploads")
+# UPLOAD_FOLDER = required_folder(APP_FOLDER, "uploads")
 
 # send verification email on registration
 VERIFY_EMAIL = False
