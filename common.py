@@ -238,8 +238,4 @@ model = tf.keras.Sequential([
     tf.keras.layers.Dense(1, activation="sigmoid"),
 ])
 
-
-with open(settings.GCS_KEY_PATH) as gcs_key_f:
-    GCS_KEYS = json.load(gcs_key_f)
-
 gcs = NQGCS(json_key_path=settings.GCS_KEY_PATH)
