@@ -97,6 +97,7 @@ createApp({
             })
             .then(response => {
                 this.uploading = false;
+                location.reload()
             })
         }
 
