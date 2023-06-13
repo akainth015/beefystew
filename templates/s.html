@@ -9,8 +9,26 @@
   }
 </style>
 
-<div class="section" id="app">
-  <div class="title is-2 has-text-centered">#[[=stream.name]]</div>
+<div class="section" id="app" v-cloak>
+  <h1 class="title is-2 has-text-centered">#[[=stream.name]]</h1>
+    <div class="field has-addons">
+      <p class="control">
+        <div class="file is-info">
+          <label class="file-label">
+            <input class="file-input" type="file" @change="upload_file($event)">
+              <span class="file-cta">
+                <span class="file-icon">
+                  <i v-if="uploading" class="fa fa-spinner fa-pulse fa-fw"></i>
+                  <i v-else class="fa fa-upload fa-fw"></i>
+                </span>
+                <span class="file-label">
+                  <span v-if="!uploading">Upload new file</span>
+                </span>
+              </span>
+          </label>
+        </div>
+      </p>
+    </div>
   <div class="container">
     <div class="tile is-ancestor is-center is-vertical" style="align-items: center">
       <div class="tile is-parent is-8" v-for="post in posts">
@@ -24,14 +42,6 @@
               Include this image in download package
             </label>
             <div class="media">
-              <!-- <div class="media-left">
-                <figure class="image is-48x48">
-                  <img
-                    src="https://bulma.io/images/placeholders/96x96.png"
-                    alt="Placeholder image"
-                  />
-                </figure>
-              </div> -->
               <div class="media-content">
                 <p class="title is-4">
                   {{post.auth_user.first_name}} {{post.auth_user.last_name}}
@@ -53,8 +63,13 @@
 </div>
 
 <script>
-  const initPosts = JSON.parse('[[=XML(posts)]]');
+  let file_info_url = "[[=XML(file_info_url)]]";
+  let obtain_gcs_url = "[[=XML(obtain_gcs_url)]]";
+  let notify_url = "[[=XML(notify_url)]]";
+  const get_posts_url = "[[=URL('stream', stream['id'], 'posts')]]";
+  let classify_url = "[[=URL('stream', stream['id'], 'classify')]]";
 </script>
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 <script src="[[=URL('static', 'js', 's.js')]]"></script>
+[[end]]

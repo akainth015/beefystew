@@ -3,6 +3,8 @@ This file defines cache, session, and translator T object for the app
 These are fixtures that every app needs, so probably you will not be editing this file
 """
 import os
+import json
+from nqgcs import NQGCS
 import sys
 import logging
 import threading
@@ -235,3 +237,5 @@ model = tf.keras.Sequential([
     tf.keras.layers.Dropout(0.7),
     tf.keras.layers.Dense(1, activation="sigmoid"),
 ])
+
+gcs = NQGCS(json_key_path=settings.GCS_KEY_PATH)
