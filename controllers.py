@@ -36,18 +36,18 @@ from yatl.helpers import A
 
 from . import settings
 from .common import db, session, T, cache, auth, logger, authenticated, unauthenticated, flash, model
-import subprocess
+import os
 import tempfile
 import shutil
 import tensorflow as tf
 
 
 import datetime
-import os 
-import traceback 
-import uuid 
-from nqgcs import NQGCS 
-from .models import get_user_email 
+import os
+import traceback
+import uuid
+from nqgcs import NQGCS
+from .models import get_user_email
 from .settings import APP_FOLDER, bucket, GCS_KEY_PATH, GCS_KEYS
 from .gcs_url import gcs_url
 
@@ -307,4 +307,11 @@ def create_posts_zip():
     dl_f = download_images(urls)
     zf = compress_directory(dl_f)
 
-    return ombott.static_file(zf, tempfile.gettempdir(), mimetype="application/zip", download=True)
+    zf_path = pathlib.Path(zf)
+
+    return ombott.static_file(
+        str(zf_path.relative_to(tempfile.gettempdir())),
+        root=tempfile.gettempdir(),
+        mimetype="application/zip",
+        download=True
+    )
