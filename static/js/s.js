@@ -66,39 +66,40 @@ createApp({
                     image: file
                 })
                 .then (response => {
-                    if (response.data.result === "Accepted") {
-                        this.uploading = true;
-                        let file_type = file.type
-                        let file_name = file.name
-                        let file_size = file.size
-                        axios.post(obtain_gcs_url, {
-                            action: "PUT",
-                            mimetype: file_type,
-                            file_name: file_name
+                    const isDraft = response.data.result !== "Approved";
+                    this.uploading = true;
+                    let file_type = file.type
+                    let file_name = file.name
+                    let file_size = file.size
+                    axios.post(obtain_gcs_url, {
+                        action: "PUT",
+                        mimetype: file_type,
+                        file_name: file_name
+                    })
+                        .then(response => {
+                            let upload_url = response.data.signed_url
+                            let file_path = response.data.file_path
+                            var req = new XMLHttpRequest();
+                            req.addEventListener("load",
+                                () => this.upload_complete(file_name, file_type, file_size, file_path, isDraft)
+                            );
+                            req.open("PUT", upload_url, true)
+                            req.send(file)
                         })
-                            .then(response => {
-                                let upload_url = response.data.signed_url
-                                let file_path = response.data.file_path
-                                var req = new XMLHttpRequest();
-                                req.addEventListener("load",
-                                    () => this.upload_complete(file_name, file_type, file_size, file_path)
-                                );
-                                req.open("PUT", upload_url, true)
-                                req.send(file)
-                            })
-                    } else {
-                        window.alert("L BOZO");
-                    }
                 });
             }
         },
-        upload_complete (file_name, file_type, file_size, file_path) {
+        upload_complete (file_name, file_type, file_size, file_path, isDraft) {
             axios.post(notify_url, {
                 file_path: file_path,
+                is_draft: isDraft
             })
             .then(response => {
                 this.uploading = false;
-                location.reload()
+                if (isDraft) {
+                    window.alert("Your post was submitted as a draft for review by the almighty council.");
+                }
+                location.reload();
             })
         },
         onDwlCheckboxClick(post, event) {
@@ -112,6 +113,12 @@ createApp({
                 });
             }
             this.lastPostSelectedForDwnl = post;
+        },
+        approveDraft(post) {
+            axios.post(approve_url, {
+                postId: post.post.id
+            })
+                .then(response => post.post.draft = false);
         }
 
 
