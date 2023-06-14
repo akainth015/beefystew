@@ -6,3 +6,5 @@ weights/*
 posts/*
 !posts/.gitkeep
 *.pyc
+private/gcs_keys.json
+.DS_Store

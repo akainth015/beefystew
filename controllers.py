@@ -100,7 +100,6 @@ def approve_post():
         db(db.post.id == post_id).update(draft=False)
         return "This post has been accepted"
     else:
-        redirect(URL('stream', stream.id))
         return "You do not have permission to approve drafts in this stream"
 
 
