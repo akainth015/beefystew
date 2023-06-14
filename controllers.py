@@ -77,7 +77,8 @@ def get_stream_posts(stream_id=None):
             (db.post.draft == False) | (db.post.draft == is_admin)
         )
     ).select(
-        db.post.ALL, db.auth_user.ALL
+        db.post.ALL, db.auth_user.ALL,
+        orderby=~db.post.created_at
     ).as_list()
     for post in posts:
         post['post']['image_ref'] = gcs_url(GCS_KEYS, post['post']['file_path'])
