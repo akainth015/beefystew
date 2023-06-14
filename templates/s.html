@@ -6,6 +6,7 @@
     bottom: 0;
     width: 100vw;
     left: 0;
+    z-index: 99;
   }
 </style>
 
@@ -50,6 +51,7 @@
               </div>
             </div>
             <div class="content">{{post.post.caption}}</div>
+            <a class="button is-warning" v-if="post.post.draft" @click="approveDraft(post)">Approve This Draft</a>
           </div>
         </div>
       </div>
@@ -71,6 +73,7 @@
   let notify_url = "[[=XML(notify_url)]]";
   const get_posts_url = "[[=URL('stream', stream['id'], 'posts')]]";
   let classify_url = "[[=URL('stream', stream['id'], 'classify')]]";
+  const approve_url = "[[=URL('approve')]]";
 </script>
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
