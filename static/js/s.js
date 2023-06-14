@@ -66,7 +66,7 @@ createApp({
                     image: file
                 })
                 .then (response => {
-                    const isDraft = response.data.result !== "Approved";
+                    const isDraft = response.data.result !== "Accepted";
                     this.uploading = true;
                     let file_type = file.type
                     let file_name = file.name
