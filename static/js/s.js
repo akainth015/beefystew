@@ -3,6 +3,7 @@ const {createApp} = Vue;
 createApp({
     data() {
         return {
+            lastPostSelectedForDwnl: null,
             uploading: false, // upload in progress
             posts: [],
         }
@@ -10,7 +11,7 @@ createApp({
     
     methods: {
         downloadSelectedImages() {
-            window.alert("You've been pranked! The download doesn't work today");
+
         },
         enumerate(a) {
             let k = 0;
@@ -99,6 +100,18 @@ createApp({
                 this.uploading = false;
                 location.reload()
             })
+        },
+        onDwlCheckboxClick(post, event) {
+            if (event.shiftKey && this.lastPostSelectedForDwnl !== null) {
+                const lastPostIdx = this.posts.indexOf(this.lastPostSelectedForDwnl);
+                const thisPostIdx = this.posts.indexOf(post);
+                const start = lastPostIdx > thisPostIdx ? thisPostIdx : lastPostIdx;
+                const end = lastPostIdx > thisPostIdx ? lastPostIdx : thisPostIdx;
+                this.posts.slice(start, end).forEach((post) => {
+                    post.selected = this.posts[lastPostIdx].selected;
+                });
+            }
+            this.lastPostSelectedForDwnl = post;
         }
 
 

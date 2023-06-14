@@ -15,7 +15,7 @@
       <p class="control">
         <div class="file is-info">
           <label class="file-label">
-            <input class="file-input" type="file" @change="upload_file($event)">
+            <input class="file-input" type="file" accept="image/*" @change="upload_file($event)">
               <span class="file-cta">
                 <span class="file-icon">
                   <i v-if="uploading" class="fa fa-spinner fa-pulse fa-fw"></i>
@@ -38,7 +38,7 @@
           </div>
           <div class="card-content">
             <label>
-              <input type="checkbox" v-model="post.selected">
+              <input type="checkbox" v-model="post.selected" @click="onDwlCheckboxClick(post, $event)">
               Include this image in download package
             </label>
             <div class="media">
@@ -56,9 +56,12 @@
     </div>
   </div>
   <div class="box has-background-white floating-toolbar p-4" v-if="posts.some(post => post.selected)">
-    <div class="buttons">
-      <button class="button is-primary" @click="downloadSelectedImages">Download Selected Images</button>
-    </div>
+    <form action="[[=URL('zip_posts')]]" method="post">
+      <input type="hidden" name="posts" :value="JSON.stringify(posts.filter(p => p.selected).map(p => p.post.file_path))">
+      <div class="buttons">
+        <input type="submit" class="button is-primary" value="Download Selected Images">
+      </div>
+    </form>
   </div>
 </div>
 

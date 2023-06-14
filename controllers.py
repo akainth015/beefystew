@@ -26,6 +26,10 @@ Warning: Fixtures MUST be declared with @action.uses({fixtures}) else your app w
 """
 import json
 import pathlib
+import requests
+import zipfile
+import tempfile
+import ombott
 
 from py4web import action, request, abort, redirect, URL, HTTP
 from yatl.helpers import A
@@ -266,3 +270,41 @@ def create_stream_post():
     shutil.rmtree(train_dir)
 
     return dict(stream_id=stream_id)
+
+
+def download_images(urls):
+    output_directory = tempfile.mkdtemp()
+    for i, url in enumerate(urls):
+        response = requests.get(url)
+
+        if response.status_code == 200:
+            filename = f"image_{i}.jpg"
+            filepath = pathlib.Path(output_directory, filename)
+
+            with open(filepath, "wb") as file:
+                file.write(response.content)
+        else:
+            print(f"Failed to download {url}")
+    return output_directory
+
+
+def compress_directory(directory):
+    _, zipfile_name = tempfile.mkstemp(suffix=".zip")
+    with zipfile.ZipFile(zipfile_name, "w") as zip_file:
+        for folder_name, _, filenames in os.walk(directory):
+            for filename in filenames:
+                file_path = pathlib.Path(folder_name, filename)
+                zip_file.write(file_path, filename)
+    return zipfile_name
+
+
+@action("zip_posts", method="POST")
+@action.uses(db)
+def create_posts_zip():
+    posts = json.loads(request.forms.get("posts", "[]"))
+    urls = [gcs_url(GCS_KEYS, post) for post in posts]
+
+    dl_f = download_images(urls)
+    zf = compress_directory(dl_f)
+
+    return ombott.static_file(zf, tempfile.gettempdir(), mimetype="application/zip", download=True)
