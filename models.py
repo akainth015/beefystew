@@ -31,6 +31,7 @@ db.define_table('post',
                 Field('caption', 'text'),
                 Field('file_path'),
                 Field('confirmed', 'boolean', default=False),
+                Field('draft', type='boolean')
                 )
 
 db.define_table('neural_network',

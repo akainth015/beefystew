@@ -26,24 +26,28 @@ Warning: Fixtures MUST be declared with @action.uses({fixtures}) else your app w
 """
 import json
 import pathlib
+import requests
+import zipfile
+import tempfile
+import ombott
 
 from py4web import action, request, abort, redirect, URL, HTTP
 from yatl.helpers import A
 
 from . import settings
 from .common import db, session, T, cache, auth, logger, authenticated, unauthenticated, flash, model
-import subprocess
+import os
 import tempfile
 import shutil
 import tensorflow as tf
 
 
 import datetime
-import os 
-import traceback 
-import uuid 
-from nqgcs import NQGCS 
-from .models import get_user_email 
+import os
+import traceback
+import uuid
+from nqgcs import NQGCS
+from .models import get_user_email
 from .settings import APP_FOLDER, bucket, GCS_KEY_PATH, GCS_KEYS
 from .gcs_url import gcs_url
 
@@ -59,21 +63,46 @@ def index():
     return dict(message=message, actions=actions, streams=streams)
 
 @action('stream/<stream_id:int>/posts')
+@action.uses(db, auth, session)
 def get_stream_posts(stream_id=None):
     assert stream_id is not None
     stream = db.stream[stream_id]
     assert stream is not None
-    posts = db(db.post_stream_mapping.stream_id == stream_id).select(
+    is_admin = False if auth.current_user is None else auth.current_user.get('id')
+    posts = db(
+        (db.post_stream_mapping.stream_id == stream_id) &
+        (db.post.id == db.post_stream_mapping.post_id) &
+        (db.auth_user.id == db.post.created_by) &
+        (
+            (db.post.draft == False) | (db.post.draft == is_admin)
+        )
+    ).select(
         db.post.ALL, db.auth_user.ALL,
-        join=[
-            db.post.on(db.post.id == db.post_stream_mapping.post_id),
-            db.auth_user.on(db.post.created_by == db.auth_user.id)
-        ],
         orderby=~db.post.created_at
     ).as_list()
     for post in posts:
         post['post']['image_ref'] = gcs_url(GCS_KEYS, post['post']['file_path'])
     return posts
+
+
+@action('approve', method="POST")
+@action.uses(db, auth.user)
+def approve_post():
+    post_id = request.json.get("postId", None)
+    assert post_id is not None
+    stream = db(
+        (db.post_stream_mapping.post_id == post_id) &
+        (db.stream.id == db.post_stream_mapping.stream_id)
+    ).select(db.stream.ALL).first()
+    assert stream is not None
+    is_allowed = stream.created_by == auth.current_user.get('id')
+    if is_allowed:
+        db(db.post.id == post_id).update(draft=False)
+        return "This post has been accepted"
+    else:
+        redirect(URL('stream', stream.id))
+        return "You do not have permission to approve drafts in this stream"
+
 
 @action("stream/<stream_id:int>")
 @action.uses("s.html", auth, T)
@@ -94,7 +123,7 @@ def stream(stream_id = None):
         obtain_gcs_url = URL('obtain_gcs'),
         notify_url = URL('stream', stream_id, 'notify_upload'),
         delete_url = URL('notify_delete'),
-        posts = posts
+        posts = posts,
         )
 
 
@@ -151,6 +180,7 @@ def mark_possible_upload(file_path):
 @action.uses(db, session)
 def notify_upload(stream_id=None):
     file_path = request.json.get("file_path")
+    is_draft = request.json.get('is_draft')
     download_url=gcs_url(GCS_KEYS, file_path, verb='GET')
     db.post.update_or_insert(
         ((db.post.created_by == auth.current_user.get("id")) &
@@ -159,7 +189,8 @@ def notify_upload(stream_id=None):
         created_at=datetime.datetime.now(),
         file_path=file_path,
         confirmed=True,
-        image_ref=download_url
+        image_ref=download_url,
+        draft=is_draft
     )
     db.post_stream_mapping.insert(
         post_id=db(db.post.file_path == file_path).select().first().id,
@@ -266,3 +297,48 @@ def create_stream_post():
     shutil.rmtree(train_dir)
 
     return dict(stream_id=stream_id)
+
+
+def download_images(urls):
+    output_directory = tempfile.mkdtemp()
+    for i, url in enumerate(urls):
+        response = requests.get(url)
+
+        if response.status_code == 200:
+            filename = f"image_{i}.jpg"
+            filepath = pathlib.Path(output_directory, filename)
+
+            with open(filepath, "wb") as file:
+                file.write(response.content)
+        else:
+            print(f"Failed to download {url}")
+    return output_directory
+
+
+def compress_directory(directory):
+    _, zipfile_name = tempfile.mkstemp(suffix=".zip")
+    with zipfile.ZipFile(zipfile_name, "w") as zip_file:
+        for folder_name, _, filenames in os.walk(directory):
+            for filename in filenames:
+                file_path = pathlib.Path(folder_name, filename)
+                zip_file.write(file_path, filename)
+    return zipfile_name
+
+
+@action("zip_posts", method="POST")
+@action.uses(db)
+def create_posts_zip():
+    posts = json.loads(request.forms.get("posts", "[]"))
+    urls = [gcs_url(GCS_KEYS, post) for post in posts]
+
+    dl_f = download_images(urls)
+    zf = compress_directory(dl_f)
+
+    zf_path = pathlib.Path(zf)
+
+    return ombott.static_file(
+        str(zf_path.relative_to(tempfile.gettempdir())),
+        root=tempfile.gettempdir(),
+        mimetype="application/zip",
+        download=True
+    )
