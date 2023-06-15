@@ -9,6 +9,10 @@ createApp({
             index: 1,
             answer: '',
             results: [],
+            caption: customQuestion,
+            imagePreview: "",
+            selectedFile: null,
+            submitButtonStatus: "Post"
         };
     },
     methods: {
@@ -66,8 +70,7 @@ createApp({
             }
         },
         upload_file(event) {
-            let input = event.target;
-            let file = input.files[0]
+            let file = this.selectedFile;
             if (file) {
                 axios.postForm(classify_url, {
                     image: file
@@ -99,7 +102,8 @@ createApp({
         upload_complete (file_name, file_type, file_size, file_path, isDraft) {
             axios.post(notify_url, {
                 file_path: file_path,
-                is_draft: isDraft
+                is_draft: isDraft,
+                caption: this.caption,
             })
             .then(response => {
                 this.uploading = false;
@@ -126,6 +130,28 @@ createApp({
                 postId: post.post.id
             })
                 .then(response => post.post.draft = false);
+        },
+        updateImgPreview(event) {
+            const selectedFile = event.target.files[0];
+
+            this.submitButtonStatus = "Loading";
+            axios.postForm(classify_url, {
+                    image: selectedFile
+            })
+                .then(response => {
+                    if (response.data.result === "Accepted") {
+                        this.submitButtonStatus = "Post";
+                    } else {
+                        this.submitButtonStatus = "Request Approval";
+                    }
+                });
+
+            this.selectedFile = selectedFile;
+            const fr = new FileReader();
+            fr.onload = () => {
+                this.imagePreview = fr.result;
+            }
+            fr.readAsDataURL(selectedFile);
         }
 
 

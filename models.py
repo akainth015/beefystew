@@ -28,7 +28,7 @@ db.define_table('post',
                 Field('created_by', 'reference auth_user'),
                 Field('created_at', type='datetime'),
                 Field('image_ref', type='string'),
-                Field('caption', 'text'),
+                Field('caption', 'string'),
                 Field('file_path'),
                 Field('confirmed', 'boolean', default=False),
                 Field('draft', type='boolean')

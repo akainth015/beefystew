@@ -12,26 +12,45 @@
 
 <div class="section" id="app" v-cloak>
   <h1 class="title is-2 has-text-centered">#[[=stream.name]]</h1>
-    <div class="field has-addons">
-      <p class="control">
-        <div class="file is-info">
-          <label class="file-label">
-            <input class="file-input" type="file" accept="image/*" @change="upload_file($event)">
-              <span class="file-cta">
-                <span class="file-icon">
-                  <i v-if="uploading" class="fa fa-spinner fa-pulse fa-fw"></i>
-                  <i v-else class="fa fa-upload fa-fw"></i>
-                </span>
-                <span class="file-label">
-                  <span v-if="!uploading">Upload new file</span>
-                </span>
-              </span>
-          </label>
-        </div>
-      </p>
-    </div>
   <div class="container">
     <div class="tile is-ancestor is-center is-vertical" style="align-items: center">
+        <div class="tile is-parent is-8">
+              <div class="tile is-child card m-4 p-4">
+                  <div class="card-image" v-if="imagePreview">
+                      <img :src="imagePreview" v-if="imagePreview">
+                  </div>
+                  <form @submit.prevent="upload_file">
+                      <div class="field">
+                          <div class="control">
+                              <div class="file has-name is-fullwidth is-info">
+                                  <label class="file-label">
+                                      <input class="file-input input" type="file" accept="image/*" required @change="updateImgPreview">
+                                      <span class="file-cta">
+                                          <span class="file-icon">
+                                              <i class="fa fa-fw fa-upload"></i>
+                                          </span>
+                                          <span class="file-label">
+                                              <span>Select Your Image!</span>
+                                          </span>
+                                      </span>
+                                      <span class="file-name">
+                                          {{selectedFile ? selectedFile.name : "No file selected"}}
+                                      </span>
+                                  </label>
+                              </div>
+                          </div>
+                      </div>
+                      <div class="field">
+                          <label> Caption
+                              <input class="input" v-model="caption" type="text" placeholder="Caption your post!">
+                          </label>
+                      </div>
+                      <input v-if="submitButtonStatus === 'Post'" class="button is-primary" type="submit" value="Post">
+                      <input v-else-if="submitButtonStatus === 'Request Approval'" class="button is-warning" type="submit" value="Post for Approval">
+                      <input v-else disabled class="button" type="submit" value="Validating...">
+                  </form>
+              </div>
+        </div>
       <div class="tile is-parent is-8" v-for="post in posts">
         <div class="tile is-child card m-4 p-4">
           <div class="card-image">
@@ -51,20 +70,7 @@
                 <p class="subtitle is-6">{{post.auth_user.username}}</p>
               </div>
             </div>
-            <div class="content">[[=stream.custom_question]]</div>
-            <div v-for="u in results" class="field has-addons">
-                  <span>Answer #{{u.index}}: {{u.answer}}</span>
-            </div>
-            <div class="field">
-              <div class="control answer-field">
-                <input v-model="answer" class="input" type="text" placeholder="Answer">
-              </div>
-            </div>
-            <div class="field">
-              <div class="control submit-button">
-                <button @click="submit_answer" class="button is-primary is-rounded">Submit</button>
-              </div>
-            </div>git 
+              <p class="content">{{post.post.caption}}</p>
             [[if approve_permissions:]]
             <a class="button is-warning" v-if="post.post.draft" @click="approveDraft(post)">Approve This Draft</a>
             [[pass]]
@@ -90,6 +96,7 @@
   const get_posts_url = "[[=URL('stream', stream['id'], 'posts')]]";
   let classify_url = "[[=URL('stream', stream['id'], 'classify')]]";
   const approve_url = "[[=URL('approve')]]";
+  const customQuestion = "[[=custom_question if custom_question else '']]";
 </script>
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>

@@ -128,6 +128,7 @@ def stream(stream_id = None):
         delete_url = URL('notify_delete'),
         posts = posts,
         approve_permissions = approve_permissions,
+        custom_question=stream.custom_question
         )
 
 
@@ -185,6 +186,7 @@ def mark_possible_upload(file_path):
 def notify_upload(stream_id=None):
     file_path = request.json.get("file_path")
     is_draft = request.json.get('is_draft')
+    caption = request.json.get('caption', '')
     download_url=gcs_url(GCS_KEYS, file_path, verb='GET')
     db.post.update_or_insert(
         ((db.post.created_by == auth.current_user.get("id")) &
@@ -194,7 +196,8 @@ def notify_upload(stream_id=None):
         file_path=file_path,
         confirmed=True,
         image_ref=download_url,
-        draft=is_draft
+        draft=is_draft,
+        caption=caption
     )
     db.post_stream_mapping.insert(
         post_id=db(db.post.file_path == file_path).select().first().id,
