@@ -246,6 +246,7 @@ def create_stream():
 @action.uses(db, session, auth.user)
 def create_stream_post():
     stream_name = request.POST.get('streamName')
+    custom_question = request.POST.get('customQuestion', '')
     file = request.files.get('file')
 
     user = auth.get_user()
@@ -261,7 +262,8 @@ def create_stream_post():
     stream_id = db.stream.insert(
         created_by=auth.current_user.get('id'),
         name=stream_name,
-        nn_id=nn_id
+        nn_id=nn_id,
+        custom_question=custom_question
     )
 
     train_dir = tempfile.mkdtemp()
