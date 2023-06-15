@@ -68,13 +68,13 @@ def get_stream_posts(stream_id=None):
     assert stream_id is not None
     stream = db.stream[stream_id]
     assert stream is not None
-    is_admin = False if auth.current_user is None else auth.current_user.get('id')
+    is_admin = False if auth.current_user is None else auth.current_user.get('id') == stream.created_by
     posts = db(
         (db.post_stream_mapping.stream_id == stream_id) &
         (db.post.id == db.post_stream_mapping.post_id) &
         (db.auth_user.id == db.post.created_by) &
         (
-            (db.post.draft == False) | (db.post.draft == is_admin)
+            (db.post.draft == False) | (db.post.draft == is_admin) | (db.post.created_by == auth.current_user.get('id'))
         )
     ).select(
         db.post.ALL, db.auth_user.ALL,
@@ -117,6 +117,9 @@ def stream(stream_id = None):
             db.auth_user.on(db.post.created_by == db.auth_user.id)
         ]
     ).as_list()
+    approve_permissions = False
+    if auth.current_user is not None:
+        approve_permissions = stream.created_by == auth.current_user.get('id')
     return dict(
         stream = stream,
         file_info_url = URL('file_info'),
@@ -124,6 +127,7 @@ def stream(stream_id = None):
         notify_url = URL('stream', stream_id, 'notify_upload'),
         delete_url = URL('notify_delete'),
         posts = posts,
+        approve_permissions = approve_permissions,
         )
 
 

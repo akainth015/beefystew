@@ -38,6 +38,7 @@
             <img :src="post.post.image_ref">
           </div>
           <div class="card-content">
+            <p class="title is-5 has-text-info has-text-centered" v-if="post.post.draft">This post is a draft</p>
             <label>
               <input type="checkbox" v-model="post.selected" @click="onDwlCheckboxClick(post, $event)">
               Include this image in download package
@@ -51,7 +52,9 @@
               </div>
             </div>
             <div class="content">{{post.post.caption}}</div>
+            [[if approve_permissions:]]
             <a class="button is-warning" v-if="post.post.draft" @click="approveDraft(post)">Approve This Draft</a>
+            [[pass]]
           </div>
         </div>
       </div>
