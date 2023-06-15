@@ -28,7 +28,7 @@ db.define_table('post',
                 Field('created_by', 'reference auth_user'),
                 Field('created_at', type='datetime'),
                 Field('image_ref', type='string'),
-                Field('caption', 'text'),
+                Field('caption', 'string'),
                 Field('file_path'),
                 Field('confirmed', 'boolean', default=False),
                 Field('draft', type='boolean')
@@ -44,6 +44,7 @@ db.define_table('neural_network',
 db.define_table('stream',
                 Field('created_by', 'reference auth_user'),
                 Field('name', 'string', required=True, requires=IS_NOT_EMPTY()),
+                Field('custom_question', 'string'),
                 Field('nn_id', 'reference neural_network'),
                 )
 

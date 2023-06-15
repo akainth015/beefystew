@@ -68,13 +68,13 @@ def get_stream_posts(stream_id=None):
     assert stream_id is not None
     stream = db.stream[stream_id]
     assert stream is not None
-    is_admin = False if auth.current_user is None else auth.current_user.get('id')
+    is_admin = False if auth.current_user is None else auth.current_user.get('id') == stream.created_by
     posts = db(
         (db.post_stream_mapping.stream_id == stream_id) &
         (db.post.id == db.post_stream_mapping.post_id) &
         (db.auth_user.id == db.post.created_by) &
         (
-            (db.post.draft == False) | (db.post.draft == is_admin)
+            (db.post.draft == False) | (db.post.draft == is_admin) | (db.post.created_by == auth.current_user.get('id'))
         )
     ).select(
         db.post.ALL, db.auth_user.ALL,
@@ -117,6 +117,9 @@ def stream(stream_id = None):
             db.auth_user.on(db.post.created_by == db.auth_user.id)
         ]
     ).as_list()
+    approve_permissions = False
+    if auth.current_user is not None:
+        approve_permissions = stream.created_by == auth.current_user.get('id')
     return dict(
         stream = stream,
         file_info_url = URL('file_info'),
@@ -124,6 +127,8 @@ def stream(stream_id = None):
         notify_url = URL('stream', stream_id, 'notify_upload'),
         delete_url = URL('notify_delete'),
         posts = posts,
+        approve_permissions = approve_permissions,
+        custom_question=stream.custom_question
         )
 
 
@@ -181,6 +186,7 @@ def mark_possible_upload(file_path):
 def notify_upload(stream_id=None):
     file_path = request.json.get("file_path")
     is_draft = request.json.get('is_draft')
+    caption = request.json.get('caption', '')
     download_url=gcs_url(GCS_KEYS, file_path, verb='GET')
     db.post.update_or_insert(
         ((db.post.created_by == auth.current_user.get("id")) &
@@ -190,7 +196,8 @@ def notify_upload(stream_id=None):
         file_path=file_path,
         confirmed=True,
         image_ref=download_url,
-        draft=is_draft
+        draft=is_draft,
+        caption=caption
     )
     db.post_stream_mapping.insert(
         post_id=db(db.post.file_path == file_path).select().first().id,
@@ -239,6 +246,7 @@ def create_stream():
 @action.uses(db, session, auth.user)
 def create_stream_post():
     stream_name = request.POST.get('streamName')
+    custom_question = request.POST.get('customQuestion', '')
     file = request.files.get('file')
 
     user = auth.get_user()
@@ -254,7 +262,8 @@ def create_stream_post():
     stream_id = db.stream.insert(
         created_by=auth.current_user.get('id'),
         name=stream_name,
-        nn_id=nn_id
+        nn_id=nn_id,
+        custom_question=custom_question
     )
 
     train_dir = tempfile.mkdtemp()
