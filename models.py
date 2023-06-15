@@ -44,6 +44,7 @@ db.define_table('neural_network',
 db.define_table('stream',
                 Field('created_by', 'reference auth_user'),
                 Field('name', 'string', required=True, requires=IS_NOT_EMPTY()),
+                Field('custom_question', 'string'),
                 Field('nn_id', 'reference neural_network'),
                 )
 

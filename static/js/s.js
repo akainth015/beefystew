@@ -6,12 +6,19 @@ createApp({
             lastPostSelectedForDwnl: null,
             uploading: false, // upload in progress
             posts: [],
-        }
+            index: 1,
+            answer: '',
+            results: [],
+        };
     },
-    
     methods: {
         downloadSelectedImages() {
 
+        },
+        submit_answer() {
+            (this.results).push({index: this.index, answer: this.answer});
+            console.log(this.results);
+            this.index = this.index + 1;
         },
         enumerate(a) {
             let k = 0;
