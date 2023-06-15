@@ -4,6 +4,7 @@ new Vue({
         streamName: '',
         file: null,
         trainingStatus: "Start Training",
+        customQuestion: '',
     },
     methods: {
         handleFileUpload(event) {
@@ -13,6 +14,7 @@ new Vue({
             const formData = new FormData();
             formData.append('streamName', this.streamName);
             formData.append('file', this.file);
+            formData.append('customQuestion', this.customQuestion);
 
             this.trainingStatus = "Started";
 
